@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "stdlib.h": "c",
+        "pio.h": "c",
+        "i2c.h": "c",
+        "shift_register.pio.h": "c",
+        "stdio.h": "c",
+        "clocks.h": "c",
+        "watchdog.h": "c",
+        "shift_register_out.pio.h": "c"
+    }
+}
