@@ -20,35 +20,38 @@ typedef struct ShiftRegister {
 //     return pio_claim_unused_sm(pio, true);
 // }
 
-
 // SIPO
 // Max freq. 41.666MHz
-// 74HC164 - 40MHz
+// Recommended freq:
+// 74HC164 - 10MHz
 // 74HC595 - ??MHz
 void init_out_shift_register(ShiftRegister *shiftRegister, uint offset, float clock) {
+    PIO pio = shiftRegister->pio;
+    uint sm = shiftRegister->sm;
+
     clock *= 3;
     float clockDiv = (float) clock_get_hz(clk_sys) / clock;
     pio_sm_config c = shift_register_out_program_get_default_config(offset);
 
-    pio_gpio_init(shiftRegister->pio, shiftRegister->dataPin);
-    pio_gpio_init(shiftRegister->pio, shiftRegister->clockPin);
+    pio_gpio_init(pio, shiftRegister->dataPin);
+    pio_gpio_init(pio, shiftRegister->clockPin);
 
     sm_config_set_out_pins(&c, shiftRegister->dataPin, 1);
-    pio_sm_set_consecutive_pindirs(shiftRegister->pio, shiftRegister->sm, shiftRegister->dataPin, 1, true);
+    pio_sm_set_consecutive_pindirs(pio, shiftRegister->sm, shiftRegister->dataPin, 1, true);
     sm_config_set_sideset_pins(&c, shiftRegister->clockPin);
-    pio_sm_set_consecutive_pindirs(shiftRegister->pio, shiftRegister->sm, shiftRegister->clockPin, 1, true);
+    pio_sm_set_consecutive_pindirs(pio, shiftRegister->sm, shiftRegister->clockPin, 1, true);
 
-    sm_config_set_in_shift(&c, false, true, 8);
     sm_config_set_out_shift(&c, true, true, 8);
 
     sm_config_set_clkdiv(&c, clockDiv);
-    pio_sm_init(shiftRegister->pio, shiftRegister->sm, offset, &c);
+    pio_sm_init(pio, sm, offset, &c);
 
-    pio_sm_set_enabled(shiftRegister->pio, shiftRegister->sm, true);
+    pio_sm_set_enabled(pio, sm, true);
 }
 
 // PISO
 // Max freq. 41.666MHz
+// Recommended freq:
 // 74HC165 - 10MHz
 void init_in_shift_register(ShiftRegister *shiftRegister, uint offset, float clock) {
     PIO pio = shiftRegister->pio;
@@ -75,49 +78,34 @@ void init_in_shift_register(ShiftRegister *shiftRegister, uint offset, float clo
 
     sm_config_set_clkdiv(&c, clockDiv);
     pio_sm_init(pio, sm, offset, &c);
-
-    dma_channel_config dc = dma_channel_get_default_config(dma_chan1);
-    channel_config_set_read_increment(&dc, false);
-    channel_config_set_write_increment(&dc, false);
-    channel_config_set_dreq(&dc, pio_get_dreq(shiftRegister->pio, shiftRegister->sm, false));
-    channel_config_set_transfer_data_size(&dc, DMA_SIZE_8);
-
-    dma_channel_configure(dma_chan1, &dc,
-            &data,                    // Destination pointer (local var)
-            &shiftRegister->pio->rxf[shiftRegister->sm],           // Source pointer (receive from PIO FIFO)
-            1,                                  // Number of transfers
-            false);
-            
     pio_sm_set_enabled(pio, sm, true);
 }
 
+// 0bABCDEFGH -> output
 void write_to_shift_register(ShiftRegister *shiftRegister, uint8_t *dataArray, bool blocking) {
     for (uint8_t i = 0; i < shiftRegister->registerCount; i++) {
-        pio_sm_put_blocking(shiftRegister->pio, shiftRegister->sm, dataArray[0]);
+        pio_sm_put(shiftRegister->pio, shiftRegister->sm, dataArray[i]);
+    }
+
+    if (!blocking) {
+        return;
     }
 
     uint32_t SM_STALL_MASK = 1u << (PIO_FDEBUG_TXSTALL_LSB + shiftRegister->sm);
     shiftRegister->pio->fdebug = SM_STALL_MASK;
-    if (blocking) {
-        while(!(shiftRegister->pio->fdebug & SM_STALL_MASK)) {
-            tight_loop_contents();
-        }
+
+    while(!(shiftRegister->pio->fdebug & SM_STALL_MASK)) {
+        tight_loop_contents();
     }
 }
 
+// 0bHGFEDCBA <- input
 void read_from_shift_register(ShiftRegister *shiftRegister, uint8_t dataArray[]) {
     gpio_put(shiftRegister->updateData, 0);
     gpio_put(shiftRegister->updateData, 1);
 
     for (uint8_t i = 0; i < shiftRegister->registerCount; i++) {
-        // Activate PIO
-        pio_sm_put_blocking(shiftRegister->pio, shiftRegister->sm, 0xFF);
-        
-        // Read with DMA
-        dma_channel_set_read_addr(dma_chan1, &shiftRegister->pio->rxf[shiftRegister->sm], true);
-        dma_channel_wait_for_finish_blocking(dma_chan1);
-
-        // Return data
-        dataArray[0] = data;
+        pio_sm_put(shiftRegister->pio, shiftRegister->sm, 0xFF);
+        dataArray[i] = pio_sm_get_blocking(shiftRegister->pio, shiftRegister->sm);
     }
 }

@@ -14,15 +14,15 @@ void print_bits(uint32_t data, uint8_t dataSize) {
 }
 
 void test_shift_register() {
-    uint8_t data_out[1] = {0b11001110};
+    uint8_t data_out[1] = {0b11010001};
     uint8_t data_in[1];
 
     write_to_shift_register(&shiftRegisterOutput, data_out, true);
     read_from_shift_register(&shiftRegisterInput, data_in);
 
     printf("\n");
-    print_bits(data, 8);
-    printf(", 0x%08x\n", data);
+    print_bits(data_in[0], 8);
+    printf(", 0x%08x\n", data_in[0]);
 }
 
 void init_shift_registers() {
@@ -31,20 +31,20 @@ void init_shift_registers() {
     shiftRegisterInput.dataPin = 10;
     shiftRegisterInput.clockPin = 11;
     shiftRegisterInput.updateData = 12;
-    shiftRegisterInput.registerCount = 10;
+    shiftRegisterInput.registerCount = 1;
 
     uint offset = pio_add_program(shiftRegisterInput.pio, &shift_register_in_program);
-    init_in_shift_register(&shiftRegisterInput, offset, 5 * 1000 * 1000);
+    init_in_shift_register(&shiftRegisterInput, offset, 10 * 1000 * 1000);
 
     shiftRegisterOutput.pio = pio0;
     shiftRegisterOutput.sm = pio_claim_unused_sm(shiftRegisterOutput.pio, true);
     shiftRegisterOutput.dataPin = 13;
     shiftRegisterOutput.clockPin = 14;
     shiftRegisterOutput.updateData = 15;
-    shiftRegisterOutput.registerCount = 10;
+    shiftRegisterOutput.registerCount = 1;
 
     uint offset2 = pio_add_program(shiftRegisterOutput.pio, &shift_register_out_program);
-    init_out_shift_register(&shiftRegisterOutput, offset2, 5 * 1000 * 1000);
+    init_out_shift_register(&shiftRegisterOutput, offset2, 10 * 1000 * 1000);
 }
 
 int main() {
