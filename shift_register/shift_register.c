@@ -54,7 +54,7 @@ void init_in_shift_register(ShiftRegister *shiftRegister, uint offset, float clo
     sm_config_set_sideset_pins(&c, shiftRegister->clockPin);
     pio_sm_set_consecutive_pindirs(pio, sm, shiftRegister->clockPin, 1, true);
 
-    sm_config_set_in_shift(&c, false, false, 8);
+    sm_config_set_in_shift(&c, false, true, 8);
 
     sm_config_set_clkdiv(&c, clockDiv);
     // pio_sm_clear_fifos(pio, sm);
@@ -85,7 +85,9 @@ void write_to_shift_register(ShiftRegister *shiftRegister, uint32_t *dataArray) 
 }
 
 void read_from_shift_register(ShiftRegister *shiftRegister, uint32_t dataArray[]) {
+    // pio_sm_put_blocking(shiftRegister->pio, shiftRegister->sm, 1);
     // dataArray[0] = pio_sm_get(shiftRegister->pio, shiftRegister->sm);
+
     pio_sm_put_blocking(shiftRegister->pio, shiftRegister->sm, 1);
     dma_channel_wait_for_finish_blocking(dma_chan);
     dataArray[0] = data;
