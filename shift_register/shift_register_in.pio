@@ -2,19 +2,7 @@
 
 .side_set 1
 
-/*
 .wrap_target
-    in pins, 1 side 0
-    nop side 1
-.wrap
-*/
-
-.wrap_target
-    pull block       side 0x00                        ; stall, waiting for signal from core
-    set x, 7         side 0x00                      ; loop counter
-
-bitloop:
-    in  pins, 1      side 0x00                      ; Pick up Q bit
-    jmp x--, bitloop side 0x01   [3]                ; Jump back for next bit
-
+    out pins, 1 side 0
+    in pins, 1 side 1 [1]
 .wrap

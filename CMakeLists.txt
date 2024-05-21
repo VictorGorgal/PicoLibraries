@@ -15,7 +15,6 @@ include(${CMAKE_CURRENT_LIST_DIR}/shift_register/CMakeLists.txt)
 
 target_link_libraries(PicoLibraries
         pico_stdlib
-        hardware_i2c
         hardware_pio
         hardware_dma
 )
