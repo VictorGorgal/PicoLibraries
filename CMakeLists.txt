@@ -11,18 +11,13 @@ add_executable(PicoLibraries
         main.c
 )
 
-pico_generate_pio_header(PicoLibraries
-        ${CMAKE_CURRENT_LIST_DIR}/shift_registers/shift_register_in.pio
-)
-
-pico_generate_pio_header(PicoLibraries
-        ${CMAKE_CURRENT_LIST_DIR}/shift_registers/shift_register_out.pio
-)
+include(${CMAKE_CURRENT_LIST_DIR}/shift_register/CMakeLists.txt)
 
 target_link_libraries(PicoLibraries
         pico_stdlib
         hardware_i2c
         hardware_pio
+        hardware_dma
 )
 
 pico_enable_stdio_usb(PicoLibraries 1)

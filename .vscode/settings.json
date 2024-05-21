@@ -7,6 +7,7 @@
         "stdio.h": "c",
         "clocks.h": "c",
         "watchdog.h": "c",
-        "shift_register_out.pio.h": "c"
+        "shift_register_out.pio.h": "c",
+        "shift_register_in.pio.h": "c"
     }
 }
