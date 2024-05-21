@@ -38,11 +38,12 @@ void init_out_shift_register(ShiftRegister *shiftRegister, uint offset, float cl
 }
 
 // PISO
+// Max freq. 10MHz
 void init_in_shift_register(ShiftRegister *shiftRegister, uint offset, float clock) {
     PIO pio = shiftRegister->pio;
     uint sm = shiftRegister->sm;
 
-    clock *= shift_register_in_program.length;
+    clock *= 5;
     float clockDiv = (float) clock_get_hz(clk_sys) / clock;
     pio_sm_config c = shift_register_in_program_get_default_config(offset);
 
@@ -57,10 +58,6 @@ void init_in_shift_register(ShiftRegister *shiftRegister, uint offset, float clo
     sm_config_set_in_shift(&c, false, true, 8);
 
     sm_config_set_clkdiv(&c, clockDiv);
-    // pio_sm_clear_fifos(pio, sm);
-    // pio_sm_restart(pio, sm);
-    // hw_set_bits(&pio->input_sync_bypass, 1u << shiftRegister->dataPin);
-
     pio_sm_init(pio, sm, offset, &c);
 
     dma_channel_config dc = dma_channel_get_default_config(dma_chan);
@@ -85,9 +82,6 @@ void write_to_shift_register(ShiftRegister *shiftRegister, uint32_t *dataArray) 
 }
 
 void read_from_shift_register(ShiftRegister *shiftRegister, uint32_t dataArray[]) {
-    // pio_sm_put_blocking(shiftRegister->pio, shiftRegister->sm, 1);
-    // dataArray[0] = pio_sm_get(shiftRegister->pio, shiftRegister->sm);
-
     pio_sm_put_blocking(shiftRegister->pio, shiftRegister->sm, 1);
     dma_channel_wait_for_finish_blocking(dma_chan);
     dataArray[0] = data;

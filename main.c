@@ -39,16 +39,16 @@ void init_shift_registers() {
     shiftRegister.registerCount = 1;
 
     uint offset = pio_add_program(shiftRegister.pio, &shift_register_out_program);
-    init_out_shift_register(&shiftRegister, offset, 1 * 1 * 1000);
+    init_out_shift_register(&shiftRegister, offset, 20 * 1000 * 1000);
 
     shiftRegister2.pio = pio0;
     shiftRegister2.sm = pio_claim_unused_sm(shiftRegister2.pio, true);
-    shiftRegister2.dataPin = 10;
-    shiftRegister2.clockPin = 13;
+    shiftRegister2.dataPin = 14;
+    shiftRegister2.clockPin = 15;
     shiftRegister2.registerCount = 1;
 
     uint offset2 = pio_add_program(shiftRegister2.pio, &shift_register_in_program);
-    init_in_shift_register(&shiftRegister2, offset2, 1 * 1 * 1000);
+    init_in_shift_register(&shiftRegister2, offset2, 5 * 1000 * 1000);
 }
 
 int main() {
