@@ -3,6 +3,12 @@
 #include "shift_register_in.pio.h"
 #include "shift_register_out.pio.h"
 
+// ToDo check if wrapping read and write with time_crit_function solves the unreliable first timing
+// ToDo check if DMA can help with read stopping between bytes
+// ToDo implement bigger buffer if DMA cant help with above
+// ToDo try to use read PIO code with write function using pio_sm_get() to clear in buffer
+// ToDo clean code
+
 typedef struct ShiftRegister {
     PIO pio;
     uint sm;
