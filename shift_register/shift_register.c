@@ -3,9 +3,6 @@
 #include "shift_register_in.pio.h"
 #include "shift_register_out.pio.h"
 
-uint8_t data = 0;
-int dma_chan1 = 0;
-
 typedef struct ShiftRegister {
     PIO pio;
     uint sm;
