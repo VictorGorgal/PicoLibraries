@@ -36,6 +36,10 @@ void init_out_shift_register(ShiftRegister *shiftRegister, uint offset, float cl
     float clockDiv = (float) clock_get_hz(clk_sys) / clock;
     pio_sm_config c = shift_register_out_program_get_default_config(offset);
 
+    gpio_init(shiftRegister->updateData);
+    gpio_set_dir(shiftRegister->updateData, true);
+    gpio_put(shiftRegister->updateData, 0);
+
     pio_gpio_init(pio, shiftRegister->dataPin);
     pio_gpio_init(pio, shiftRegister->clockPin);
 
@@ -100,15 +104,79 @@ void write_to_shift_register(ShiftRegister *shiftRegister, uint8_t *dataArray, b
     while(!(shiftRegister->pio->fdebug & SM_STALL_MASK)) {
         tight_loop_contents();
     }
+
+    sleep_us(1);
+    gpio_put(shiftRegister->updateData, 1);
+    sleep_us(1);
+    gpio_put(shiftRegister->updateData, 0);
 }
 
 // 0bHGFEDCBA <- input
 void read_from_shift_register(ShiftRegister *shiftRegister, uint8_t dataArray[]) {
     gpio_put(shiftRegister->updateData, 0);
+    sleep_us(1);
     gpio_put(shiftRegister->updateData, 1);
 
     for (uint8_t i = 0; i < shiftRegister->registerCount; i++) {
         pio_sm_put(shiftRegister->pio, shiftRegister->sm, 0xFF);
         dataArray[i] = pio_sm_get_blocking(shiftRegister->pio, shiftRegister->sm);
+    }
+}
+
+void print_bits(uint32_t data, uint8_t dataSize) {
+    for (uint8_t i = 0; i < dataSize; i++) {
+        printf("%d", (data >> (dataSize-1-i)) & 1);
+    }
+}
+
+void shift_register_example() {
+    ShiftRegister shiftRegisterInput;
+    ShiftRegister shiftRegisterOutput;
+
+    shiftRegisterOutput.pio = pio0;
+    shiftRegisterOutput.sm = pio_claim_unused_sm(shiftRegisterOutput.pio, true);
+    shiftRegisterOutput.dataPin = 10;
+    shiftRegisterOutput.clockPin = 11;
+    shiftRegisterOutput.updateData = 12;
+    shiftRegisterOutput.registerCount = 3;
+
+    uint offset2 = pio_add_program(shiftRegisterOutput.pio, &shift_register_out_program);
+    init_out_shift_register(&shiftRegisterOutput, offset2, 1 * 1000 * 1000);
+
+    shiftRegisterInput.pio = pio0;
+    shiftRegisterInput.sm = pio_claim_unused_sm(shiftRegisterInput.pio, true);
+    shiftRegisterInput.dataPin = 13;
+    shiftRegisterInput.clockPin = 14;
+    shiftRegisterInput.updateData = 15;
+    shiftRegisterInput.registerCount = 3;
+
+    uint offset = pio_add_program(shiftRegisterInput.pio, &shift_register_in_program);
+    init_in_shift_register(&shiftRegisterInput, offset, 1 * 1000 * 1000);
+
+    gpio_set_dir(16, false);
+    gpio_pull_down(16);
+    while (true) {
+        sleep_ms(500);
+        watchdog_update();
+        printf(".");
+        if (!gpio_get(16)) {
+            continue;
+        }
+
+        uint8_t data_out[4] = {0b11111010, 0b11001010, 0b11011010};
+        uint8_t data_in[4];
+
+        write_to_shift_register(&shiftRegisterOutput, data_out, true);
+        read_from_shift_register(&shiftRegisterInput, data_in);
+
+        printf("\n");
+        print_bits(data_in[0], 8);
+        printf(", ");
+        print_bits(data_in[1], 8);
+        printf(", ");
+        print_bits(data_in[2], 8);
+        printf(", ");
+        print_bits(data_in[3], 8);
+        printf("\n");
     }
 }

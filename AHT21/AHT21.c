@@ -63,16 +63,18 @@ void AHT21_example() {
     AHT21_init(i2c0);
 
     while (true) {
-        sleep_ms(10);
+        sleep_ms(1000);
 
         // Only measure if button is pressed
-        if (!gpio_get(16)) {
-            continue;
-        }
+        // if (!gpio_get(16)) {
+        //     continue;
+        // }
 
         // Gets measurement
         float data[2];
         AHT21_getMeasurementBlocking(data);
         printf("H:%.2f%%, T:%.2fC\n", data[0], data[1]);
+
+        watchdog_update();
     }
 }
