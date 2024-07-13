@@ -10,7 +10,7 @@ int main() {
     stdio_init_all();
 
     // Watchdog
-    watchdog_enable(5000, true);
+    // watchdog_enable(5000, true);
 
     shift_register_example();
 
