@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
 # Add libraries
 include(${CMAKE_CURRENT_LIST_DIR}/shift_register/CMakeLists.txt)
 include(${CMAKE_CURRENT_LIST_DIR}/AHT21/CMakeLists.txt)
+include(${CMAKE_CURRENT_LIST_DIR}/744051/CMakeLists.txt)
 
 target_link_libraries(${PROJECT_NAME}
         pico_stdlib

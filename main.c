@@ -5,6 +5,7 @@
 #include "hardware/i2c.h"
 #include "shift_register/shift_register.c"
 #include "AHT21/AHT21.c"
+#include "744051/744051.c"
 
 int main() {
     stdio_init_all();
@@ -12,7 +13,5 @@ int main() {
     // Watchdog
     // watchdog_enable(5000, true);
 
-    shift_register_example();
-
-    // AHT21_example();
+    C744051_example();
 }
