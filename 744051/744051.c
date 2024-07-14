@@ -20,32 +20,28 @@ void init_744051_adc() {
 /**
  * @brief Initializes the 744051
  *
+ * @param[in] c744051 Pointer to c744051 struct to initialize
  * @param[in] common Pico's analog pin connected to chip
  * @param[in] S0 Address pin S0
  * @param[in] S1 Address pin S1
  * @param[in] S2 Address pin S2
- *
- * @return Struct used by other library functions
  */
-C744051 init_744051(uint8_t common, uint8_t S0, uint8_t S1, uint8_t S2) {
-    C744051 c744051;
+void init_744051(C744051 *c744051, uint8_t common, uint8_t S0, uint8_t S1, uint8_t S2) {
 
-    c744051.common = common;
-    c744051.S0 = S0;
-    c744051.S1 = S1;
-    c744051.S2 = S2;
+    c744051->common = common;
+    c744051->S0 = S0;
+    c744051->S1 = S1;
+    c744051->S2 = S2;
 
-    c744051.pin_mask = 0;
-    c744051.pin_mask |= (0b1 << S0);
-    c744051.pin_mask |= (0b1 << S1);
-    c744051.pin_mask |= (0b1 << S2);
+    c744051->pin_mask = 0;
+    c744051->pin_mask |= (0b1 << S0);
+    c744051->pin_mask |= (0b1 << S1);
+    c744051->pin_mask |= (0b1 << S2);
     
     adc_gpio_init(common);
-    gpio_init_mask(c744051.pin_mask);
-    gpio_set_dir_masked(c744051.pin_mask, 0xFFFFFFFF);
-    gpio_put_masked(c744051.pin_mask, 0);
-
-    return c744051;
+    gpio_init_mask(c744051->pin_mask);
+    gpio_set_dir_masked(c744051->pin_mask, 0xFFFFFFFF);
+    gpio_put_masked(c744051->pin_mask, 0);
 }
 
 /**
@@ -60,6 +56,21 @@ uint8_t _analog_pin_to_input_select(uint8_t analog_pin) {
 }
 
 /**
+ * @brief Selects which Pico's adc to read from.
+ * 
+ * This function should be run before the read functions if another analog input was selected
+ * or if state is unknown
+ *
+ * @param[in] c744051 744051 struct.
+ */
+void select_adc_input_744051(C744051 c744051) {
+    if (adc_get_selected_input() != _analog_pin_to_input_select(c744051.common)) {
+        adc_select_input(_analog_pin_to_input_select(c744051.common));
+    }
+}
+
+// ToDo fix this docstring
+/**
  * @brief Selects which adc to read from.
  * 
  * This function should be run before the read functions if another analog input was selected
@@ -68,10 +79,6 @@ uint8_t _analog_pin_to_input_select(uint8_t analog_pin) {
  * @param[in] c744051 744051 struct.
  */
 void select_input_744051(C744051 c744051, uint8_t channel) {
-    if (adc_get_selected_input() != _analog_pin_to_input_select(c744051.common)) {
-        adc_select_input(_analog_pin_to_input_select(c744051.common));
-    }
-
     uint32_t state_mask = 0;
     state_mask |= (((channel & 0b001)) << c744051.S0);
     state_mask |= (((channel & 0b010) >> 1) << c744051.S1);
@@ -88,7 +95,7 @@ void select_input_744051(C744051 c744051, uint8_t channel) {
  *
  * @return The analog value.
  */
-uint16_t __time_critical_func(read_744051_channel)(C744051 c744051, uint8_t channel, uint8_t samples) {
+uint16_t __time_critical_func(read_single_744051_channel)(uint8_t channel, uint8_t samples) {
     if (samples <= 1) {
         return adc_read();
     }
@@ -102,18 +109,25 @@ uint16_t __time_critical_func(read_744051_channel)(C744051 c744051, uint8_t chan
 
 /**
  * @brief Reads analog value from multiple pins from chip and saves to the given array
+ * 
+ * This function implements a 1ms delay between selecting the 744051 input and reading due to
+ * the high input capacitance of the Pico's adc input.
+ * Using a buffer has not shown any benefits.
  *
  * @param[in] c744051 744051 struct.
  * @param[in] read_pin_mask mask of which pins to read from.
  * @param[in] samples How many samples to do for each pin.
  * @param[in] data uint16_t array.
  */
-void read_744051(C744051 c744051, uint8_t read_pin_mask, uint8_t samples, uint16_t *data) {
+void read_744051_masked(C744051 c744051, uint8_t read_pin_mask, uint8_t samples, uint16_t *data) {
+    select_adc_input_744051(c744051);
+
     uint8_t data_counter = 0;
     for (int channel = 0; channel < 8; channel++) {
         if ((read_pin_mask >> channel) & 0b1) {
             select_input_744051(c744051, channel);
-            data[data_counter++] = read_744051_channel(c744051, channel, samples);
+            sleep_ms(1);
+            data[data_counter++] = read_single_744051_channel(channel, samples);
         }
     }
 }
@@ -123,8 +137,9 @@ double adc_to_voltage(int adc_value) {
 }
 
 void C744051_example() {
+    C744051 c744051;
     init_744051_adc();
-    C744051 c744051 = init_744051(26, 10, 11, 12);
+    init_744051(&c744051, 26, 10, 11, 12);
 
     gpio_init(16);
     gpio_set_dir(16, false);
@@ -135,10 +150,8 @@ void C744051_example() {
             continue;
         }
 
-        uint16_t data[6];
-        select_input_744051(c744051, 0);
-        read_744051(c744051, 0b00111111, 3, data);
-        select_input_744051(c744051, 0);
+        uint16_t data[8];
+        read_744051_masked(c744051, 0b11111111, 3, data);
 
         for (int i = 0; i < 5; i++) {
             printf("%f, ", adc_to_voltage(data[i]));
