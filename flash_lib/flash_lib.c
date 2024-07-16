@@ -132,8 +132,9 @@ bool alloc_multiple_sectors(uint32_t *sector, uint32_t sector_number) {
     for (uint32_t sector_index = 0; sector_index < sector_number; ++sector_index) {
         uint32_t sector_address = _get_random_sector_id();
         // Saves the first 18 bits of the sector address
-        sectors[total_sectors+sector_index] = (sector_address & SECTOR_POSITION_MASK);
-        sector[sector_index] = total_sectors + sector_index;
+        uint32_t absolute_address = total_sectors + sector_index;
+        sectors[absolute_address] = sector_address;
+        sector[sector_index] = absolute_address;
     }
     total_sectors += sector_number;
 
