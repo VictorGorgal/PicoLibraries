@@ -8,6 +8,18 @@
         "clocks.h": "c",
         "watchdog.h": "c",
         "shift_register_out.pio.h": "c",
-        "shift_register_in.pio.h": "c"
-    }
+        "shift_register_in.pio.h": "c",
+        "adc.h": "c",
+        "744051.h": "c",
+        "aht21.h": "c",
+        "platform_defs.h": "c",
+        "shift_register.h": "c",
+        "flash.h": "c",
+        "string.h": "c",
+        "sync.h": "c",
+        "flash_lib.h": "c",
+        "random": "c",
+        "limits": "c"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

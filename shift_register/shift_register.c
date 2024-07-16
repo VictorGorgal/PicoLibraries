@@ -1,15 +1,4 @@
-#include "hardware/clocks.h"
-#include "hardware/dma.h"
-#include "shift_register.pio.h"
-
-typedef struct ShiftRegister {
-    PIO pio;
-    uint sm;
-    uint8_t registerCount;
-    uint8_t dataPin;
-    uint8_t clockPin;
-    uint8_t updateData;
-} ShiftRegister;
+#include "shift_register.h"
 
 // SIPO
 // Max freq. 41.666MHz

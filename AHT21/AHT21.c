@@ -1,9 +1,4 @@
-#include "hardware/i2c.h"
-
-const uint8_t AHT21_ADDRESS = 0x38;
-const uint8_t INIT_COMMAND = 0x71;
-const uint8_t MEASURE_COMMAND[3] = {0xAC, 0x33, 0x00};
-i2c_inst_t *_i2c_channel;
+#include "AHT21.h"
 
 float _humidityFromRawData(uint8_t *rawData) {
     uint32_t raw_humidity = (rawData[1] << 12) | (rawData[2] << 4) | ((rawData[3] & 0xF0) >> 4);
@@ -18,7 +13,7 @@ float _temperatureFromRawData(uint8_t *rawData) {
 // Wait at least 100ms after power up to initiale the AHT21
 void AHT21_init(i2c_inst_t *i2c_channel) {
     _i2c_channel = i2c_channel;
-    uint8_t src = 0x71;
+    uint8_t src = AHT21_INIT_COMMAND;
     uint8_t answer[1];
     i2c_write_blocking(_i2c_channel, 0x38, &src, 1, false);
     i2c_read_blocking(_i2c_channel, 0x38, answer, 1, false);
