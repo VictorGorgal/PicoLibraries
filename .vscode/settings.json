@@ -19,7 +19,9 @@
         "sync.h": "c",
         "flash_lib.h": "c",
         "random": "c",
-        "limits": "c"
+        "limits": "c",
+        "hashset.h": "c",
+        "time.h": "c"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }
