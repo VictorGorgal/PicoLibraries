@@ -5,7 +5,6 @@ project(FlashLibrary)
 # Specify the source files
 set(SOURCES
     src/flash_lib.c
-    src/hashmap.c
 )
 
 # Create the library
@@ -13,7 +12,6 @@ add_library(flash_lib STATIC ${SOURCES})
 
 # Specify include directories
 target_include_directories(flash_lib PUBLIC include)
-target_include_directories(flash_lib PRIVATE private)
 
 # Link the necessary libraries
 target_link_libraries(flash_lib

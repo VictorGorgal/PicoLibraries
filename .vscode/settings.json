@@ -21,7 +21,14 @@
         "random": "c",
         "limits": "c",
         "hashset.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "string_view": "c",
+        "array": "c",
+        "string": "c",
+        "memory": "c",
+        "functional": "c",
+        "tuple": "c",
+        "utility": "c"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }
