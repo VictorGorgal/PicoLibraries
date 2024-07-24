@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/cmake,visualstudiocode,ninja
 # Edit at https://www.toptal.com/developers/gitignore?templates=cmake,visualstudiocode,ninja
 
+flash-wear-leveling-lib
+
 ### CMake ###
 CMakeLists.txt.user
 CMakeCache.txt

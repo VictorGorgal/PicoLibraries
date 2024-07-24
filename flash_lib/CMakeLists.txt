@@ -8,13 +8,13 @@ set(SOURCES
 )
 
 # Create the library
-add_library(flash_lib STATIC ${SOURCES})
+add_library(flash_lib2 STATIC ${SOURCES})
 
 # Specify include directories
-target_include_directories(flash_lib PUBLIC include)
+target_include_directories(flash_lib2 PUBLIC include)
 
 # Link the necessary libraries
-target_link_libraries(flash_lib
+target_link_libraries(flash_lib2
     pico_stdlib
     hardware_flash
 )
